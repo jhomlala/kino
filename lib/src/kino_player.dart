@@ -5,6 +5,7 @@ import 'kino_fullscreen_route.dart';
 import 'kino_player_controller.dart';
 import 'kino_player_controller_provider.dart';
 import 'kino_player_controls.dart';
+import 'kino_player_event.dart';
 import 'kino_volume_picker_route.dart';
 
 class KinoPlayer extends StatefulWidget {
@@ -40,12 +41,18 @@ class _KinoPlayerState extends State<KinoPlayer>
   }
 
   void _updateListener() {
+
+
     print("Update listener!!!");
+    if (widget.kinoPlayerController.event == KinoPlayerEvent.OPEN_VOLUME_PICKER){
+      widget.kinoPlayerController.event = null;
+      _showVolumePicker();
+    }
     if (widget.kinoPlayerController.fullScreen && !_fullScreen) {
       print("Show full screen");
       _fullScreen = true;
       _setFullscreen();
-    } else {}
+    }
   }
 
   @override
@@ -67,7 +74,9 @@ class _KinoPlayerState extends State<KinoPlayer>
       setState(() {
         //_hideControlls = false;
         getVideoPlayerController().pause();
-        widget.kinoPlayerController.setLastEvent(1);
+        widget.kinoPlayerController.setEvent(KinoPlayerEvent.SHOW_CONTROLS);
+
+        //widget.kinoPlayerController.setLastEvent(1);
       });
     }
   }

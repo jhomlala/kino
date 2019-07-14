@@ -7,6 +7,7 @@ import 'kino_configuration.dart';
 import 'kino_player_control.dart';
 import 'kino_player_controller.dart';
 import 'kino_player_controller_provider.dart';
+import 'kino_player_event.dart';
 
 class KinoPlayerControls extends StatefulWidget {
   @override
@@ -48,8 +49,9 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   void _updateListener() {
     print("Kino player controller updated!");
-    if (_kinoPlayerController.lastEvent == 1) {
+    if (_kinoPlayerController.event == KinoPlayerEvent.SHOW_CONTROLS) {
       setState(() {
+        _kinoPlayerController.clearEvent()
         _hideControlls = false;
       });
     }
@@ -149,6 +151,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
             color: Colors.blue,
           )),
       onTap: () {
+        _kinoPlayerController.setEvent(KinoPlayerEvent.OPEN_VOLUME_PICKER);
         //_showVolumePicker();
         //Navigator.push(context, new KinoVolumePickerRoute());
       },
@@ -245,7 +248,9 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         color: Colors.blue,
       ),
       onTap: () {
-        setState(() {});
+        setState(() {
+          _kinoPlayerController.forward();
+        });
       },
     );
   }

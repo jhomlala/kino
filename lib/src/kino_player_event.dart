@@ -1,0 +1,3 @@
+enum KinoPlayerEvent {
+  SHOW_CONTROLS, OPEN_VOLUME_PICKER,
+}
