@@ -198,7 +198,6 @@ class _KinoPlayerState extends State<KinoPlayer>
 
     await Navigator.of(context).push(FullscreenRoute(provider));
 
-    print("IM BACK!!!");
     setState(() {
       widget.kinoPlayerController.fullScreen = false;
       _fullScreen = false;
