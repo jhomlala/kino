@@ -46,6 +46,7 @@ class _KinoPlayerState extends State<KinoPlayer>
     var event = widget.kinoPlayerController.value;
     if (event != null &&
         event.eventType == KinoPlayerEventType.OPEN_VOLUME_PICKER) {
+      print("Show volume picker " + hashCode.toString());
       _showVolumePicker();
     }
 
@@ -72,8 +73,9 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _onPlayerClicked() {
     print("On Player clicked!!!");
 
+    print("is playing? " + getVideoPlayerController().value.isPlaying.toString());
 
-    if (getVideoPlayerController().value.isPlaying) {
+    if (getVideoPlayerController().value.isPlaying || widget.kinoPlayerController.isVideoFinished()) {
       widget.kinoPlayerController
           .setEvent(KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS));
       print("Pausing!");
@@ -88,6 +90,9 @@ class _KinoPlayerState extends State<KinoPlayer>
       print("Not pausing??");
     }
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +173,8 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _showVolumePicker() async {
     final double result = await Navigator.push(context,
         KinoVolumePickerRoute(getVideoPlayerController().value.volume));
+
+
     if (result != null) {
       getVideoPlayerController().setVolume(result);
     }

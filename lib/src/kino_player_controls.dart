@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import 'kino_configuration.dart';
 import 'kino_player_control.dart';
 import 'kino_player_controller.dart';
-import 'kino_player_controller_provider.dart';
 import 'kino_player_event.dart';
 import 'kino_player_event_type.dart';
 
@@ -113,25 +111,28 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     }
   }
 
-  Widget _getMiddlePlayWidget() {
-    return InkWell(
-      onTap: () {
-        _onPlayClicked();
-      },
-      child: Icon(
-        _getPlayingIcon(),
-        size: 60.0,
-        color: Colors.blue,
-      ),
-    );
+  void _onReplayClicked() {
+    _kinoPlayerController.setPositionToStart();
+    Timer(Duration(milliseconds: 2000), () {
+      _onPlayClicked();
+    });
+    //_onPlayClicked();
   }
 
-  IconData _getPlayingIcon() {
-    if (!_kinoPlayerController.videoPlayerController.value.isPlaying) {
-      return Icons.play_circle_outline;
-    } else {
-      return null;
+  Widget _getMiddlePlayWidget() {
+    if (_kinoPlayerController.isVideoFinished()) {
+      return _getControlButton(Icons.replay, () {
+        _onReplayClicked();
+      }, height: 80, width: 80, iconSize: 60);
     }
+
+    if (!_kinoPlayerController.videoPlayerController.value.isPlaying) {
+      return _getControlButton(Icons.play_circle_outline, () {
+        _onPlayClicked();
+      }, height: 80, width: 80, iconSize: 60);
+    }
+
+    return null;
   }
 
   List<Widget> _buildProgressRowWidgets() {
@@ -209,79 +210,38 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   Widget _getVolumeWidget() {
-    return InkWell(
-      child: Padding(
-          padding: EdgeInsets.all(5),
-          child: Icon(
-            Icons.volume_up,
-            color: Colors.blue,
-          )),
-      onTap: () {
-        _kinoPlayerController
-            .setEvent(KinoPlayerEvent(KinoPlayerEventType.OPEN_VOLUME_PICKER));
-        //_showVolumePicker();
-        //Navigator.push(context, new KinoVolumePickerRoute());
-      },
-    );
+    return _getControlButton(Icons.volume_up, () {
+      print("Click!");
+      _kinoPlayerController
+          .setEvent(KinoPlayerEvent(KinoPlayerEventType.OPEN_VOLUME_PICKER));
+    });
   }
 
   Widget _getPlayPauseWidget() {
     if (getVideoPlayerController().value.isPlaying) {
-      return InkWell(
-        child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Icon(
-              Icons.pause,
-              color: Colors.blue,
-            )),
-        onTap: () {
-          _onPauseClicked();
-        },
-      );
+      return _getControlButton(Icons.pause, () {
+        _onPauseClicked();
+      });
     } else {
-      return InkWell(
-        child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Icon(
-              Icons.play_arrow,
-              color: Colors.blue,
-            )),
-        onTap: () {
-          _onPlayClicked();
-        },
-      );
+      return _getControlButton(Icons.play_arrow, () {
+        _onPlayClicked();
+      });
     }
   }
 
   _getFullscreenWidget() {
     if (_kinoPlayerController.fullScreen) {
-      return InkWell(
-        child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Icon(
-              Icons.fullscreen_exit,
-              color: Colors.blue,
-            )),
-        onTap: () {
-          _cancelTimers();
-          _kinoPlayerController.setFullscreen(false);
-          Navigator.of(context).pop();
-        },
-      );
+      return _getControlButton(Icons.fullscreen_exit, () {
+        _cancelTimers();
+        _kinoPlayerController.setFullscreen(false);
+        Navigator.of(context).pop();
+      });
     } else {
-      return InkWell(
-        child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Icon(
-              Icons.fullscreen,
-              color: Colors.blue,
-            )),
-        onTap: () {
-          _cancelTimers();
-          _kinoPlayerController.setFullscreen(true);
-          setState(() {});
-        },
-      );
+      return _getControlButton(Icons.fullscreen, () {
+        _cancelTimers();
+        _kinoPlayerController.setFullscreen(true);
+        setState(() {});
+      });
     }
   }
 
@@ -300,65 +260,51 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   _getRewindWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.fast_rewind,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {});
-      },
-    );
+    return _getControlButton(Icons.fast_rewind, () {
+      bool timersSet = _areTimersSet();
+      if (timersSet) {
+        _cancelTimers();
+        _kinoPlayerController.rewind();
+        _setupTimers();
+      } else {
+        _kinoPlayerController.rewind();
+      }
+    });
+  }
+
+  bool _areTimersSet() {
+    return _hideTimer != null && _timeUpdateTimer != null;
   }
 
   _getForwardWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.fast_forward,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {
-          _kinoPlayerController.forward();
-        });
-      },
-    );
+    return _getControlButton(Icons.fast_forward, () {
+      bool timersSet = _areTimersSet();
+      if (timersSet) {
+        _cancelTimers();
+        _kinoPlayerController.forward();
+        _setupTimers();
+      } else {
+        _kinoPlayerController.forward();
+      }
+    });
   }
 
   _getSkipPreviousWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.skip_previous,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {});
-      },
-    );
+    return _getControlButton(Icons.skip_previous, () {
+      setState(() {});
+    });
   }
 
   _getSkipNextWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.skip_next,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {});
-      },
-    );
+    return _getControlButton(Icons.skip_next, () {
+      setState(() {});
+    });
   }
 
   _getSettingsWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.settings,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {});
-      },
-    );
+    return _getControlButton(Icons.settings, () {
+      setState(() {});
+    });
   }
 
   String _getTimeLeft() {
@@ -400,5 +346,25 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         _hideControlls = true;
       });
     });
+  }
+
+  Widget _getControlButton(IconData icon, Function onPressedAction,
+      {double height = 35, double width = 35, double iconSize = 25}) {
+    return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: CircleBorder(),
+          child: Container(
+              width: width,
+              height: height,
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: Colors.blue,
+              )),
+          onTap: () {
+            onPressedAction();
+          },
+        ));
   }
 }
