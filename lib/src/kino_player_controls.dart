@@ -8,6 +8,7 @@ import 'kino_player_control.dart';
 import 'kino_player_controller.dart';
 import 'kino_player_controller_provider.dart';
 import 'kino_player_event.dart';
+import 'kino_player_event_type.dart';
 
 class KinoPlayerControls extends StatefulWidget {
   @override
@@ -27,19 +28,19 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   @override
   void dispose() {
-    if (_hideTimer != null){
-      _hideTimer.cancel();
-    }
-    if (_timeUpdateTimer != null){
-      _timeUpdateTimer.cancel();
-    }
+    _cancelTimers();
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
+    print("DID CHANGE DEPS!!!");
     _kinoPlayerController = KinoPlayerController.of(context);
     _kinoPlayerController.addListener(_updateListener);
+    if (_kinoPlayerController.videoPlayerController.value.isPlaying ) {
+      print("Setup hide timer");
+       _setupTimers();
+    }
     super.didChangeDependencies();
   }
 
@@ -49,9 +50,11 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   void _updateListener() {
     print("Kino player controller updated!");
-    if (_kinoPlayerController.event == KinoPlayerEvent.SHOW_CONTROLS) {
+    var event = _kinoPlayerController.value;
+    if (event != null && event.eventType == KinoPlayerEventType.SHOW_CONTROLS) {
+      _cancelTimers();
       setState(() {
-        _kinoPlayerController.clearEvent()
+        print("Show controls");
         _hideControlls = false;
       });
     }
@@ -80,15 +83,23 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         _kinoPlayerController.kinoPlayerConfiguration.playerControls;
     List<Widget> widgets = List();
     if (controls.contains(KinoPlayerControl.PROGRESS)) {
-      widgets.add( Padding(padding: EdgeInsets.only(left: 10),));
+      widgets.add(Padding(
+        padding: EdgeInsets.only(left: 10),
+      ));
       widgets.add(_getProgressIndicatorWidget());
-      widgets.add( Padding(padding: EdgeInsets.only(right: 10),));
+      widgets.add(Padding(
+        padding: EdgeInsets.only(right: 10),
+      ));
     }
     if (controls.contains(KinoPlayerControl.TIME)) {
       widgets.add(_getTimeWidget());
     }
-    if (widgets.length > 0){
-      widgets.insert(0, Padding(padding: EdgeInsets.only(left: 10),));
+    if (widgets.length > 0) {
+      widgets.insert(
+          0,
+          Padding(
+            padding: EdgeInsets.only(left: 10),
+          ));
     }
 
     return widgets;
@@ -133,7 +144,6 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   Widget _getTimeWidget() {
-    _getTimeLeft();
     return Padding(
         padding: EdgeInsets.all(5),
         child: Text(
@@ -151,7 +161,8 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
             color: Colors.blue,
           )),
       onTap: () {
-        _kinoPlayerController.setEvent(KinoPlayerEvent.OPEN_VOLUME_PICKER);
+        _kinoPlayerController
+            .setEvent(KinoPlayerEvent(KinoPlayerEventType.OPEN_VOLUME_PICKER));
         //_showVolumePicker();
         //Navigator.push(context, new KinoVolumePickerRoute());
       },
@@ -184,7 +195,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         onTap: () {
           setState(() {
             //_hideControlls = true;
-            _setupHideTimer();
+            _setupTimers();
             getVideoPlayerController().play();
           });
         },
@@ -202,11 +213,9 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
               color: Colors.blue,
             )),
         onTap: () {
-          setState(() {
-            _kinoPlayerController.setFullscreen(false);
-            Navigator.of(context).pop();
-            // _setFullscreen();
-          });
+          _cancelTimers();
+          _kinoPlayerController.setFullscreen(false);
+          Navigator.of(context).pop();
         },
       );
     } else {
@@ -218,14 +227,25 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
               color: Colors.blue,
             )),
         onTap: () {
-          setState(() {
-            setState(() {
-              _kinoPlayerController.setFullscreen(true);
-            });
-            // _setFullscreen();
-          });
+          _cancelTimers();
+          _kinoPlayerController.setFullscreen(true);
+          setState(() {});
         },
       );
+    }
+  }
+
+  _cancelTimers() {
+    print("Cancel timers");
+    if (_timeUpdateTimer != null && _timeUpdateTimer.isActive) {
+      print("Time update timer cancelled");
+      _timeUpdateTimer.cancel();
+      _timeUpdateTimer = null;
+    }
+    if (_hideTimer != null && _hideTimer.isActive) {
+      print("Hide timer cancelled");
+      _hideTimer.cancel();
+      _hideTimer = null;
     }
   }
 
@@ -292,13 +312,11 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   String _getTimeLeft() {
+    print("GET TIME LEFT!!");
     Duration currentDuration = getVideoPlayerController().value.position;
     Duration videoDuration = getVideoPlayerController().value.duration;
-    print("Current duration: " + currentDuration.toString());
-    print("Video duration: " + videoDuration.toString());
     if (currentDuration != null && videoDuration != null) {
       Duration remainingDuration = videoDuration - currentDuration;
-      print("remaining: " + remainingDuration.inSeconds.toString());
       int minutes = remainingDuration.inMinutes;
       int seconds = remainingDuration.inSeconds - 60 * minutes;
       String secondsFormatted = "$seconds";
@@ -311,20 +329,22 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     return "-0:00";
   }
 
-  void _setupHideTimer() {
+  void _setupTimers() {
     _timeUpdateTimer =
         Timer.periodic(Duration(milliseconds: 900), (Timer timer) {
-          if (this.mounted){
-            print("Moundted");
-            setState(() {});
-          } else {
-            print("Not mounted");
-          }
+      print("TIMER INVOKED FROM " + hashCode.toString());
+
+      if (this.mounted && timer.isActive) {
+        print("Refresh state!");
+        setState(() {});
+      } else {
+        print("Not mounted and not active");
+      }
     });
-    _hideTimer = Timer(Duration(milliseconds: 10000), () {
+    _hideTimer = Timer(Duration(milliseconds: 5000), () {
+      print("HIDE HIDE HIDE HIDE!!!");
+      _cancelTimers();
       setState(() {
-        _timeUpdateTimer.cancel();
-        _timeUpdateTimer = null;
         _hideControlls = true;
       });
     });

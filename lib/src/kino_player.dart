@@ -6,6 +6,7 @@ import 'kino_player_controller.dart';
 import 'kino_player_controller_provider.dart';
 import 'kino_player_controls.dart';
 import 'kino_player_event.dart';
+import 'kino_player_event_type.dart';
 import 'kino_volume_picker_route.dart';
 
 class KinoPlayer extends StatefulWidget {
@@ -41,13 +42,13 @@ class _KinoPlayerState extends State<KinoPlayer>
   }
 
   void _updateListener() {
-
-
     print("Update listener!!!");
-    if (widget.kinoPlayerController.event == KinoPlayerEvent.OPEN_VOLUME_PICKER){
-      widget.kinoPlayerController.event = null;
+    var event = widget.kinoPlayerController.value;
+    if (event != null &&
+        event.eventType == KinoPlayerEventType.OPEN_VOLUME_PICKER) {
       _showVolumePicker();
     }
+
     if (widget.kinoPlayerController.fullScreen && !_fullScreen) {
       print("Show full screen");
       _fullScreen = true;
@@ -69,15 +70,22 @@ class _KinoPlayerState extends State<KinoPlayer>
   }
 
   void _onPlayerClicked() {
+    print("On Player clicked!!!");
+
+
     if (getVideoPlayerController().value.isPlaying) {
+      widget.kinoPlayerController
+          .setEvent(KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS));
       print("Pausing!");
-      setState(() {
+      getVideoPlayerController().pause();
+      /*setState(() {
         //_hideControlls = false;
-        getVideoPlayerController().pause();
-        widget.kinoPlayerController.setEvent(KinoPlayerEvent.SHOW_CONTROLS);
+
 
         //widget.kinoPlayerController.setLastEvent(1);
-      });
+      });*/
+    } else {
+      print("Not pausing??");
     }
   }
 
@@ -204,13 +212,15 @@ class _KinoPlayerState extends State<KinoPlayer>
               ))),
             )));
 
-
     await Navigator.of(context).push(FullscreenRoute(provider));
 
     setState(() {
       widget.kinoPlayerController.fullScreen = false;
       _fullScreen = false;
     });
+
+
+
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,

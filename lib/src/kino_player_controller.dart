@@ -4,20 +4,23 @@ import 'package:video_player/video_player.dart';
 import 'kino_configuration.dart';
 import 'kino_player_controller_provider.dart';
 import 'kino_player_event.dart';
+import 'kino_player_event_type.dart';
 
-class KinoPlayerController with ChangeNotifier {
+class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   KinoPlayerConfiguration kinoPlayerConfiguration;
   VideoPlayerController videoPlayerController;
   bool autoPlay;
   String url;
   bool fullScreen = false;
-  KinoPlayerEvent event;
+  //KinoPlayerEvent event = KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS);
+
+
 
   KinoPlayerController(
       {this.kinoPlayerConfiguration,
       this.videoPlayerController,
       this.autoPlay,
-      this.url});
+      this.url}) : super(null);
 
   static KinoPlayerController of(BuildContext context) {
     final kinoPlayerProvider =
@@ -26,13 +29,10 @@ class KinoPlayerController with ChangeNotifier {
     return kinoPlayerProvider.controller;
   }
 
-  void setEvent(KinoPlayerEvent kinoPlayerEvent) {
-    event = kinoPlayerEvent;
-    notifyListeners();
-  }
 
-  void clearEvent(){
-    event = null;
+  void setEvent(KinoPlayerEvent kinoPlayerEvent) {
+    this.value = kinoPlayerEvent;
+    notifyListeners();
   }
 
   void setFullscreen(bool state) {
@@ -53,4 +53,6 @@ class KinoPlayerController with ChangeNotifier {
     }
     videoPlayerController.seekTo(forwardDuration);
   }
+
+
 }
