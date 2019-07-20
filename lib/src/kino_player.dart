@@ -7,6 +7,7 @@ import 'kino_player_controller_provider.dart';
 import 'kino_player_controls.dart';
 import 'kino_player_event.dart';
 import 'kino_player_event_type.dart';
+import 'kino_settings_route.dart';
 import 'kino_volume_picker_route.dart';
 
 class KinoPlayer extends StatefulWidget {
@@ -44,10 +45,15 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _updateListener() {
     print("Update listener!!!");
     var event = widget.kinoPlayerController.value;
-    if (event != null &&
-        event.eventType == KinoPlayerEventType.OPEN_VOLUME_PICKER) {
-      print("Show volume picker " + hashCode.toString());
-      _showVolumePicker();
+
+    if (event != null) {
+      if (event.eventType == KinoPlayerEventType.OPEN_VOLUME_PICKER) {
+        print("Show volume picker " + hashCode.toString());
+        _showVolumePicker();
+      }
+      if (event.eventType == KinoPlayerEventType.OPEN_SETTINGS) {
+        _showSettings();
+      }
     }
 
     if (widget.kinoPlayerController.fullScreen && !_fullScreen) {
@@ -73,26 +79,19 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _onPlayerClicked() {
     print("On Player clicked!!!");
 
-    print("is playing? " + getVideoPlayerController().value.isPlaying.toString());
+    print(
+        "is playing? " + getVideoPlayerController().value.isPlaying.toString());
 
-    if (getVideoPlayerController().value.isPlaying || widget.kinoPlayerController.isVideoFinished()) {
+    if (getVideoPlayerController().value.isPlaying ||
+        widget.kinoPlayerController.isVideoFinished()) {
       widget.kinoPlayerController
           .setEvent(KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS));
       print("Pausing!");
       getVideoPlayerController().pause();
-      /*setState(() {
-        //_hideControlls = false;
-
-
-        //widget.kinoPlayerController.setLastEvent(1);
-      });*/
     } else {
       print("Not pausing??");
     }
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -129,54 +128,26 @@ class _KinoPlayerState extends State<KinoPlayer>
     }
     list.add(KinoPlayerControls());
 
-
-
-    /* list.add(VideoProgressIndicator(
-      _controller,
-      allowScrubbing: true,
-    ));*/
-
-    /* list.add(Align(
-        alignment: Alignment.bottomCenter,
-        child: Row(
-          children: <Widget>[
-            FlatButton(
-              child: Text("Play"),
-              onPressed: () {
-                _controller.play();
-              },
-            ),
-            FlatButton(
-              child: Text("Pause"),
-              onPressed: () {
-                //_controller.pause();
-              },
-            )
-          ],
-        )));*/
-
     return list;
   }
 
-  _getSettingsWidget() {
-    return InkWell(
-      child: Icon(
-        Icons.settings,
-        color: Colors.blue,
-      ),
-      onTap: () {
-        setState(() {});
-      },
-    );
-  }
-
   void _showVolumePicker() async {
+    bool isPlaying =
+        widget.kinoPlayerController.videoPlayerController.value.isPlaying;
+
+    if (isPlaying) {
+      await getVideoPlayerController().pause();
+    }
     final double result = await Navigator.push(context,
         KinoVolumePickerRoute(getVideoPlayerController().value.volume));
 
+    if (isPlaying) {
+      await getVideoPlayerController().play();
+    }
 
     if (result != null) {
       getVideoPlayerController().setVolume(result);
+      setState(() {});
     }
   }
 
@@ -221,12 +192,14 @@ class _KinoPlayerState extends State<KinoPlayer>
       _fullScreen = false;
     });
 
-
-
     SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+  }
+
+  void _showSettings() async {
+    await Navigator.push(context, KinoSettingsRoute());
   }
 }

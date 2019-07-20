@@ -78,19 +78,10 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
                               children: _buildBottomRowControlWidgets())
                         ])),
                 Align(
-                    alignment: Alignment.center, child: _getMiddlePlayWidget())
+                    alignment: Alignment.center, child: _getMiddlePlayWidget()),
+                Align(alignment: Alignment.topRight, child: _getSettingsWidget(),)
               ],
             )));
-
-    /* child: Align(
-                alignment: Alignment.bottomCenter,
-                child:
-                    Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  Row(children: _buildProgressRowWidgets()),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: _buildBottomRowControlWidgets())
-                ]))));*/
   }
 
   void _onPauseClicked() {
@@ -139,6 +130,9 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     List<KinoPlayerControl> controls =
         _kinoPlayerController.kinoPlayerConfiguration.playerControls;
     List<Widget> widgets = List();
+    if (controls.contains(KinoPlayerControl.TIME)) {
+      widgets.add(_getCurrentTimeWidget());
+    }
     if (controls.contains(KinoPlayerControl.PROGRESS)) {
       widgets.add(Padding(
         padding: EdgeInsets.only(left: 10),
@@ -148,9 +142,10 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         padding: EdgeInsets.only(right: 10),
       ));
     }
-    if (controls.contains(KinoPlayerControl.TIME)) {
-      widgets.add(_getTimeWidget());
+    if (controls.contains(KinoPlayerControl.TIME)){
+      widgets.add(_getVideoDurationWidget());
     }
+
     if (widgets.length > 0) {
       widgets.insert(
           0,
@@ -200,18 +195,41 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     ));
   }
 
-  Widget _getTimeWidget() {
+  Widget _getCurrentTimeWidget() {
     return Padding(
-        padding: EdgeInsets.all(5),
+        padding: EdgeInsets.all(2),
         child: Text(
-          _getTimeLeft(),
+          _getCurrentTime(),
+          style: TextStyle(color: Colors.blue),
+        ));
+  }
+
+  Widget _getVideoDurationWidget() {
+    return Padding(
+        padding: EdgeInsets.all(2),
+        child: Text(
+          _getVideoDuration(),
           style: TextStyle(color: Colors.blue),
         ));
   }
 
   Widget _getVolumeWidget() {
-    return _getControlButton(Icons.volume_up, () {
-      print("Click!");
+    double currentVolumeLevel =
+        _kinoPlayerController.videoPlayerController.value.volume;
+    print("Current volume level: " + currentVolumeLevel.toString());
+    IconData icon = Icons.volume_mute;
+    if (currentVolumeLevel == 0.0) {
+      icon = Icons.volume_off;
+    } else if (currentVolumeLevel < 0.3) {
+      icon = Icons.volume_mute;
+    } else if (currentVolumeLevel < 0.7) {
+      icon = Icons.volume_down;
+    } else {
+      icon = Icons.volume_up;
+    }
+
+    return _getControlButton(icon, () {
+      print("Current volume level: " + currentVolumeLevel.toString());
       _kinoPlayerController
           .setEvent(KinoPlayerEvent(KinoPlayerEventType.OPEN_VOLUME_PICKER));
     });
@@ -303,26 +321,19 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   _getSettingsWidget() {
     return _getControlButton(Icons.settings, () {
-      setState(() {});
+      _kinoPlayerController
+          .setEvent(KinoPlayerEvent(KinoPlayerEventType.OPEN_SETTINGS));
     });
   }
 
-  String _getTimeLeft() {
-    print("GET TIME LEFT!!");
+  String _getCurrentTime() {
     Duration currentDuration = getVideoPlayerController().value.position;
-    Duration videoDuration = getVideoPlayerController().value.duration;
-    if (currentDuration != null && videoDuration != null) {
-      Duration remainingDuration = videoDuration - currentDuration;
-      int minutes = remainingDuration.inMinutes;
-      int seconds = remainingDuration.inSeconds - 60 * minutes;
-      String secondsFormatted = "$seconds";
-      if (seconds < 10) {
-        secondsFormatted = "0$secondsFormatted";
-      }
-      return "-$minutes:$secondsFormatted";
-    }
 
-    return "-0:00";
+    if (currentDuration != null) {
+      return _formatDuration(currentDuration);
+    } else {
+      return _formatDuration(Duration.zero);
+    }
   }
 
   void _setupTimers() {
@@ -367,4 +378,24 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
           },
         ));
   }
+
+  String _getVideoDuration() {
+    Duration videoDuration = getVideoPlayerController().value.duration;
+    if (videoDuration != null){
+      return _formatDuration(videoDuration);
+    } else {
+      return _formatDuration(Duration.zero);
+    }
+  }
+
+  String _formatDuration(Duration duration){
+    int minutes = duration.inMinutes;
+    int seconds = duration.inSeconds - 60 * minutes;
+    String secondsFormatted = "$seconds";
+    if (seconds < 10) {
+      secondsFormatted = "0$secondsFormatted";
+    }
+    return "$minutes:$secondsFormatted";
+  }
+
 }
