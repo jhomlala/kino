@@ -37,9 +37,9 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     print("DID CHANGE DEPS!!!");
     _kinoPlayerController = KinoPlayerController.of(context);
     _kinoPlayerController.addListener(_updateListener);
-    if (_kinoPlayerController.videoPlayerController.value.isPlaying ) {
+    if (_kinoPlayerController.videoPlayerController.value.isPlaying) {
       print("Setup hide timer");
-       _setupTimers();
+      _setupTimers();
     }
     super.didChangeDependencies();
   }
@@ -67,7 +67,24 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
         duration: Duration(milliseconds: 500),
         child: AspectRatio(
             aspectRatio: getVideoPlayerController().value.aspectRatio,
-            child: Align(
+            child: Stack(
+              children: [
+                Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(children: _buildProgressRowWidgets()),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: _buildBottomRowControlWidgets())
+                        ])),
+                Align(
+                    alignment: Alignment.center, child: _getMiddlePlayWidget())
+              ],
+            )));
+
+    /* child: Align(
                 alignment: Alignment.bottomCenter,
                 child:
                     Column(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -75,7 +92,46 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: _buildBottomRowControlWidgets())
-                ]))));
+                ]))));*/
+  }
+
+  void _onPauseClicked() {
+    if (!_hideControlls) {
+      print("On pause clicked");
+      _cancelTimers();
+      getVideoPlayerController().pause();
+      setState(() {});
+    }
+  }
+
+  void _onPlayClicked() {
+    if (!_hideControlls) {
+      print("On play clicked");
+      _setupTimers();
+      getVideoPlayerController().play();
+      setState(() {});
+    }
+  }
+
+  Widget _getMiddlePlayWidget() {
+    return InkWell(
+      onTap: () {
+        _onPlayClicked();
+      },
+      child: Icon(
+        _getPlayingIcon(),
+        size: 60.0,
+        color: Colors.blue,
+      ),
+    );
+  }
+
+  IconData _getPlayingIcon() {
+    if (!_kinoPlayerController.videoPlayerController.value.isPlaying) {
+      return Icons.play_circle_outline;
+    } else {
+      return null;
+    }
   }
 
   List<Widget> _buildProgressRowWidgets() {
@@ -179,9 +235,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
               color: Colors.blue,
             )),
         onTap: () {
-          setState(() {
-            getVideoPlayerController().pause();
-          });
+          _onPauseClicked();
         },
       );
     } else {
@@ -193,11 +247,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
               color: Colors.blue,
             )),
         onTap: () {
-          setState(() {
-            //_hideControlls = true;
-            _setupTimers();
-            getVideoPlayerController().play();
-          });
+          _onPlayClicked();
         },
       );
     }
@@ -330,6 +380,8 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   void _setupTimers() {
+    _cancelTimers();
+
     _timeUpdateTimer =
         Timer.periodic(Duration(milliseconds: 900), (Timer timer) {
       print("TIMER INVOKED FROM " + hashCode.toString());

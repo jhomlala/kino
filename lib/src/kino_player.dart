@@ -124,12 +124,7 @@ class _KinoPlayerState extends State<KinoPlayer>
     }
     list.add(KinoPlayerControls());
 
-    list.add((AspectRatio(
-        aspectRatio: getVideoPlayerController().value.aspectRatio,
-        child: Align(
-          alignment: Alignment.topRight,
-          child: _getSettingsWidget(),
-        ))));
+
 
     /* list.add(VideoProgressIndicator(
       _controller,
