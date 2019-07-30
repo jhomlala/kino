@@ -17,6 +17,8 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  path_provider: ^1.1.2
+  permission_handler: '^2.2.0'
   kino:
     path: ../
   flutter:

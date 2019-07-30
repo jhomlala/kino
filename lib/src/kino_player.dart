@@ -8,6 +8,7 @@ import 'kino_player_controls.dart';
 import 'kino_player_event.dart';
 import 'kino_player_event_type.dart';
 import 'kino_settings_route.dart';
+import 'kino_subtitles.dart';
 import 'kino_volume_picker_route.dart';
 
 class KinoPlayer extends StatefulWidget {
@@ -87,6 +88,7 @@ class _KinoPlayerState extends State<KinoPlayer>
       widget.kinoPlayerController
           .setEvent(KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS));
       print("Pausing!");
+
       getVideoPlayerController().pause();
     } else {
       print("Not pausing??");
@@ -126,6 +128,7 @@ class _KinoPlayerState extends State<KinoPlayer>
     } else {
       list.add(Container(child: CircularProgressIndicator()));
     }
+    list.add(KinoSubtitles());
     list.add(KinoPlayerControls());
 
     return list;

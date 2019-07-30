@@ -10,11 +10,11 @@ class _KinoSettingsState extends State<KinoSettings> {
   Widget build(BuildContext context) {
     return Theme(
         data: ThemeData(
-            dialogBackgroundColor: Colors.black87,
+            dialogBackgroundColor: Colors.blue,
             textTheme: Theme.of(context).textTheme.apply(
-              bodyColor: Colors.white,
-              displayColor: Colors.white,
-            )),
+                  bodyColor: Colors.white,
+                  displayColor: Colors.white,
+                )),
         child: Dialog(
             child: Container(
                 margin: EdgeInsets.all(10),
@@ -22,7 +22,15 @@ class _KinoSettingsState extends State<KinoSettings> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                   Text("Test")
+                    Row(children: [
+                      Text("Subtitles: "),
+                      FlatButton(
+                          child: Text(
+                            "None",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: () {})
+                    ])
                   ],
                 ))));
   }

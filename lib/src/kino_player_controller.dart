@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -5,10 +7,13 @@ import 'kino_configuration.dart';
 import 'kino_player_controller_provider.dart';
 import 'kino_player_event.dart';
 import 'kino_player_event_type.dart';
+import 'kino_subtitle.dart';
+import 'kino_utils.dart';
 
 class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   KinoPlayerConfiguration kinoPlayerConfiguration;
   VideoPlayerController videoPlayerController;
+  List<KinoSubtitle> kinoSubtitles;
   bool autoPlay;
   String url;
   bool fullScreen = false;
@@ -20,7 +25,14 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
       this.videoPlayerController,
       this.autoPlay,
       this.url})
-      : super(null);
+      : super(null) {
+    loadSubtitles();
+  }
+  void loadSubtitles() async{
+    kinoSubtitles = await KinoUtils.parseSubtitles(kinoPlayerConfiguration.subtitlesPath);
+    print("Subtitles loaded!!!" + kinoSubtitles.toString());
+    setEvent(KinoPlayerEvent(KinoPlayerEventType.SUBTITLES_LOADED));
+  }
 
   static KinoPlayerController of(BuildContext context) {
     final kinoPlayerProvider =
@@ -93,4 +105,6 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   void setPositionToStart() {
     videoPlayerController.seekTo(Duration.zero);
   }
+
+
 }

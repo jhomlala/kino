@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:kino/kino.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(MyApp());
 
@@ -41,9 +45,22 @@ class _MyHomePageState extends State<MyHomePage> {
   KinoPlayer kinoPlayer;
 
   @override
-  void initState() {
+  void initState(){
+    kinoPlayer = KinoBuilder.buildSimpleKinoPlayer("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", "/storage/emulated/0/example.srt");
+
     super.initState();
-    kinoPlayer = KinoBuilder.buildSimpleKinoPlayer("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4");
+
+  }
+
+  setupPlayer() async{
+    Directory directory = await getApplicationDocumentsDirectory();
+    String path = "/storage/emulated/0/example.srt";
+    File file = File(path);
+    bool exists= await file.exists();
+    print("File exists? " + exists.toString());
+    print("Path: " + path);
+    kinoPlayer = KinoBuilder.buildSimpleKinoPlayer("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", "/storage/emulated/0/example.srt");
+    askForPermission();
   }
 
   @override
@@ -58,4 +75,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
             child:Center(child: kinoPlayer)));
   }
+
+  void askForPermission() async {
+    Map<PermissionGroup, PermissionStatus> permissions =
+    await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+    //bool isShown = await PermissionHandler().shouldShowRequestPermissionRationale(PermissionGroup.storage);
+  }
+
+
+
 }

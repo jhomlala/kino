@@ -89,6 +89,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
       print("On pause clicked");
       _cancelTimers();
       getVideoPlayerController().pause();
+      _kinoPlayerController.setEvent(KinoPlayerEvent(KinoPlayerEventType.PAUSE));
       setState(() {});
     }
   }
@@ -98,6 +99,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
       print("On play clicked");
       _setupTimers();
       getVideoPlayerController().play();
+      _kinoPlayerController.setEvent(KinoPlayerEvent(KinoPlayerEventType.PLAY));
       setState(() {});
     }
   }
@@ -360,7 +362,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   Widget _getControlButton(IconData icon, Function onPressedAction,
-      {double height = 35, double width = 35, double iconSize = 25}) {
+      {double height = 30, double width = 30, double iconSize = 25}) {
     return Material(
         color: Colors.transparent,
         child: InkWell(

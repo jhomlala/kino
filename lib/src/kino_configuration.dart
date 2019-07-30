@@ -1,10 +1,12 @@
 import 'kino_player_control.dart';
 
 class KinoPlayerConfiguration {
+  final String subtitlesPath;
   final List<KinoPlayerControl> playerControls;
 
   KinoPlayerConfiguration(
-      {this.playerControls = const [
+      {this.subtitlesPath,
+      this.playerControls = const [
         KinoPlayerControl.VOLUME,
         KinoPlayerControl.SKIP_PREVIOUS,
         KinoPlayerControl.REWIND,
