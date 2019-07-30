@@ -62,19 +62,31 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
     Duration currentVideoDuration =
     await _kinoPlayerController.videoPlayerController.position;
     if (currentSubtitle == null) {
-      currentSubtitle = _getSubtitle(currentVideoDuration);
+      setState(() {
+        currentSubtitle = _getSubtitle(currentVideoDuration);
+      });
       if (currentSubtitle == null){
         print("no subtitle to show");
         return;
       }
+    } else {
+      if (!(currentSubtitle.startTime <= currentVideoDuration &&
+      currentVideoDuration <= currentSubtitle.endTime)){
+        setState(() {
+          currentSubtitle = _getSubtitle(currentVideoDuration);
+        });
+
+      }
     }
-   
+
+    print("TIME: " + currentVideoDuration.toString() + " subtitle: " + currentSubtitle.toString());
+
   }
 
   KinoSubtitle _getSubtitle(Duration currentVideoDuration) {
     for (var subtitle in subtitles) {
       if (subtitle.startTime >= currentVideoDuration){
-        return null;
+        continue;
       }
       //00:07
 
@@ -88,11 +100,19 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
     return null;
   }
 
+  String _getCurrentSubtitleText(){
+    if (currentSubtitle != null){
+      return currentSubtitle.subtitles.toString();
+    }else{
+      return "";
+    }
+  }
+
     @override
     Widget build(BuildContext context) {
       return Container(
         child: Text(
-          "Subtitles",
+          _getCurrentSubtitleText(),
           style: TextStyle(color: Colors.white),
         ),
       );
