@@ -60,32 +60,33 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
 
   void _updateSubtitle(Timer timer) async {
     Duration currentVideoDuration =
-    await _kinoPlayerController.videoPlayerController.position;
+        await _kinoPlayerController.videoPlayerController.position;
     if (currentSubtitle == null) {
       setState(() {
         currentSubtitle = _getSubtitle(currentVideoDuration);
       });
-      if (currentSubtitle == null){
+      if (currentSubtitle == null) {
         print("no subtitle to show");
         return;
       }
     } else {
       if (!(currentSubtitle.startTime <= currentVideoDuration &&
-      currentVideoDuration <= currentSubtitle.endTime)){
+          currentVideoDuration <= currentSubtitle.endTime)) {
         setState(() {
           currentSubtitle = _getSubtitle(currentVideoDuration);
         });
-
       }
     }
 
-    print("TIME: " + currentVideoDuration.toString() + " subtitle: " + currentSubtitle.toString());
-
+    print("TIME: " +
+        currentVideoDuration.toString() +
+        " subtitle: " +
+        currentSubtitle.toString());
   }
 
   KinoSubtitle _getSubtitle(Duration currentVideoDuration) {
     for (var subtitle in subtitles) {
-      if (subtitle.startTime >= currentVideoDuration){
+      if (subtitle.startTime >= currentVideoDuration) {
         continue;
       }
       //00:07
@@ -100,21 +101,25 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
     return null;
   }
 
-  String _getCurrentSubtitleText(){
-    if (currentSubtitle != null){
-      return currentSubtitle.subtitles.toString();
-    }else{
-      return "";
+  List<Widget> _getCurrentSubtitleTexts() {
+    List widgets = List<Widget>();
+    if (currentSubtitle != null && currentSubtitle.subtitles.length > 0) {
+        currentSubtitle.subtitles.forEach((subtitle){
+          widgets.add(Text(subtitle, style: TextStyle(color: Colors.white)));
+        });
+
     }
+    return widgets;
   }
 
-    @override
-    Widget build(BuildContext context) {
-      return Container(
-        child: Text(
-          _getCurrentSubtitleText(),
-          style: TextStyle(color: Colors.white),
-        ),
-      );
-    }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: Row(children:
+      _getCurrentSubtitleTexts()
+    ));
   }
+}
