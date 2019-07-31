@@ -15,7 +15,7 @@ class KinoPlayerControls extends StatefulWidget {
 
 class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   KinoPlayerController _kinoPlayerController;
-  bool _hideControlls = false;
+  bool controlsState = true;
   Timer _hideTimer;
   Timer _timeUpdateTimer;
 
@@ -35,6 +35,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     print("DID CHANGE DEPS!!!");
     _kinoPlayerController = KinoPlayerController.of(context);
     _kinoPlayerController.addListener(_updateListener);
+    _kinoPlayerController.setControlsState(true);
     if (_kinoPlayerController.videoPlayerController.value.isPlaying) {
       print("Setup hide timer");
       _setupTimers();
@@ -53,7 +54,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
       _cancelTimers();
       setState(() {
         print("Show controls");
-        _hideControlls = false;
+       _setControlsShown(true);
       });
     }
   }
@@ -61,7 +62,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   @override
   Widget build(BuildContext context) {
     return AnimatedOpacity(
-        opacity: _hideControlls ? 0.0 : 1.0,
+        opacity: controlsState ? 1.0 : 0.0,
         duration: Duration(milliseconds: 500),
         child: AspectRatio(
             aspectRatio: getVideoPlayerController().value.aspectRatio,
@@ -85,7 +86,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   void _onPauseClicked() {
-    if (!_hideControlls) {
+    if (controlsState) {
       print("On pause clicked");
       _cancelTimers();
       getVideoPlayerController().pause();
@@ -95,7 +96,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   void _onPlayClicked() {
-    if (!_hideControlls) {
+    if (controlsState) {
       print("On play clicked");
       _setupTimers();
       getVideoPlayerController().play();
@@ -356,7 +357,8 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
       print("HIDE HIDE HIDE HIDE!!!");
       _cancelTimers();
       setState(() {
-        _hideControlls = true;
+        _kinoPlayerController.setEvent(KinoPlayerEvent(KinoPlayerEventType.HIDE_CONTROLS));
+        _setControlsShown(false);
       });
     });
   }
@@ -398,6 +400,11 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
       secondsFormatted = "0$secondsFormatted";
     }
     return "$minutes:$secondsFormatted";
+  }
+
+  void _setControlsShown(bool state){
+    controlsState = state;
+    _kinoPlayerController.setControlsState(controlsState);
   }
 
 }

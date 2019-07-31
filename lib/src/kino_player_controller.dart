@@ -17,6 +17,7 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   bool autoPlay;
   String url;
   bool fullScreen = false;
+  bool controlsState = false;
 
   //KinoPlayerEvent event = KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS);
 
@@ -44,6 +45,10 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   void setEvent(KinoPlayerEvent kinoPlayerEvent) {
     this.value = kinoPlayerEvent;
     //notifyListeners();
+  }
+
+  void setControlsState(bool state){
+    controlsState = state;
   }
 
   void setFullscreen(bool state) {
