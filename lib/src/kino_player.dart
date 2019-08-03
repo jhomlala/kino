@@ -25,8 +25,8 @@ class KinoPlayer extends StatefulWidget {
 class _KinoPlayerState extends State<KinoPlayer>
     with SingleTickerProviderStateMixin {
   bool _fullScreen = false;
-  Timer _loadTimer;
   bool _loadFailed = false;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -38,33 +38,30 @@ class _KinoPlayerState extends State<KinoPlayer>
   _loadVideo() {
     print("Url: " + widget.kinoPlayerController.url);
 
-    _startVideoLoadTimer();
+    var previousController = widget.kinoPlayerController.videoPlayerController;
+    if (previousController != null){
+      previousController.dispose();
+    }
     var _controller =
         VideoPlayerController.network(widget.kinoPlayerController.url)
           ..initialize().then((_) {
-            _loadTimer.cancel();
-            _loadTimer = null;
             setState(() {});
             widget.kinoPlayerController.setInitialized(true);
           });
 
     widget.kinoPlayerController.videoPlayerController = _controller;
+    widget.kinoPlayerController.videoPlayerController.addListener((){
+      if (_controller.value.hasError){
+          setState(() {
+            _hasError= true;
+          });
+      }
+    });
 
 
     //var val = widget.kinoPlayerController.videoPlayerController.value.errorDescription;
   }
 
-  _startVideoLoadTimer() {
-    _loadTimer = Timer(
-        Duration(
-            milliseconds: widget.kinoPlayerController.kinoPlayerConfiguration
-                .videoLoadTimeout), () {
-      setState(() {
-        _loadFailed = true;
-      });
-      print("VIDEO TOOK TO LONG TO LOAD!!!");
-    });
-  }
 
   @override
   void didChangeDependencies() {
@@ -109,12 +106,12 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _onPlayerClicked() {
     print("On Player clicked!!!");
 
-    print("is playing? " +
+    /*print("is playing? " +
         getVideoPlayerController().value.isPlaying.toString() +
         " is buffering: ? " +
         getVideoPlayerController().value.isBuffering.toString() +
         "error: " +
-        getVideoPlayerController().value.errorDescription);
+        getVideoPlayerController().value.errorDescription);*/
 
     if (getVideoPlayerController().value.isPlaying || getVideoPlayerController().value.hasError ||
         widget.kinoPlayerController.isVideoFinished()) {
@@ -154,7 +151,7 @@ class _KinoPlayerState extends State<KinoPlayer>
   void retry() {
     print("Pressed retry");
     setState(() {
-      _loadFailed = false;
+      _hasError = false;
     });
     _loadVideo();
   }
@@ -170,7 +167,7 @@ class _KinoPlayerState extends State<KinoPlayer>
       list.add(KinoSubtitles());
       list.add(KinoPlayerControls());
     } else {
-      if (_loadFailed) {
+      if (_hasError) {
         list.add(AspectRatio(
             aspectRatio: getVideoPlayerController().value.aspectRatio,
             child: Align(
