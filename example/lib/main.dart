@@ -41,47 +41,47 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   KinoPlayer kinoPlayer;
+  KinoPlayer kinoPlayer2;
 
   @override
-  void initState(){
-    kinoPlayer = KinoBuilder.buildSimpleKinoPlayer("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", "/storage/emulated/0/example.srt");
+  void initState() {
+    kinoPlayer = KinoBuilder.buildSimpleKinoPlayerWithUrls([
+        "https://file-examples.com/wp-content/uploads/2017/04/file_example_MP4_1920_18MG.mp4",
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"]) ;
+    kinoPlayer2 = KinoBuilder.buildSimpleKinoPlayer(
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "/storage/emulated/0/example.srt");
 
     super.initState();
-
   }
 
-  setupPlayer() async{
+  setupPlayer() async {
     Directory directory = await getApplicationDocumentsDirectory();
     String path = "/storage/emulated/0/example.srt";
     File file = File(path);
-    bool exists= await file.exists();
+    bool exists = await file.exists();
     print("File exists? " + exists.toString());
     print("Path: " + path);
-    kinoPlayer = KinoBuilder.buildSimpleKinoPlayer("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", "/storage/emulated/0/example.srt");
+    kinoPlayer = KinoBuilder.buildSimpleKinoPlayerWithUrls([
+      "https://file-examples.com/wp-content/uploads/2017/04/file_example_MP4_1920_18MG.mp4",
+      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    ]);
     askForPermission();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
         appBar: AppBar(
-
           title: Text(widget.title),
         ),
-        body: Container(
-
-            child:Center(child: kinoPlayer)));
+        body: Container(child: Center(child: Column(children: [kinoPlayer]))));
   }
 
   void askForPermission() async {
     Map<PermissionGroup, PermissionStatus> permissions =
-    await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+        await PermissionHandler().requestPermissions([PermissionGroup.storage]);
     //bool isShown = await PermissionHandler().shouldShowRequestPermissionRationale(PermissionGroup.storage);
   }
-
-
-
 }

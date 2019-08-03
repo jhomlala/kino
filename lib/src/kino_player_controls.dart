@@ -328,7 +328,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   _getSkipNextWidget() {
     return _getControlButton(Icons.skip_next, () {
-      setState(() {});
+      _kinoPlayerController.playNextVideo();
     });
   }
 

@@ -5,5 +5,6 @@ enum KinoPlayerEventType {
   OPEN_SETTINGS,
   SUBTITLES_LOADED,
   PLAY,
-  PAUSE
+  PAUSE,
+  NEXT
 }

@@ -15,7 +15,8 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   VideoPlayerController videoPlayerController;
   List<KinoSubtitle> kinoSubtitles;
   bool autoPlay;
-  String url;
+  List<String> urls;
+  String currentUrl;
   bool fullScreen = false;
   bool controlsState = false;
   bool initialized = false;
@@ -26,7 +27,7 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
       {this.kinoPlayerConfiguration,
       this.videoPlayerController,
       this.autoPlay,
-      this.url})
+      this.urls})
       : super(null) {
    // loadSubtitles();
 
@@ -117,6 +118,17 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
 
   void setPositionToStart() {
     videoPlayerController.seekTo(Duration.zero);
+  }
+
+  playNextVideo(){
+    var indexOfCurrentUrl = urls.indexOf(currentUrl);
+    if (indexOfCurrentUrl != -1 && indexOfCurrentUrl + 1 < urls.length){
+      currentUrl = urls[indexOfCurrentUrl + 1];
+    }
+    videoPlayerController.pause();
+    setEvent(KinoPlayerEvent(KinoPlayerEventType.NEXT));
+
+
   }
 
 
