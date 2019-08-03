@@ -18,6 +18,7 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   String url;
   bool fullScreen = false;
   bool controlsState = false;
+  bool initialized = false;
 
   //KinoPlayerEvent event = KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS);
 
@@ -27,7 +28,9 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
       this.autoPlay,
       this.url})
       : super(null) {
-    loadSubtitles();
+   // loadSubtitles();
+
+
   }
   void loadSubtitles() async{
     kinoSubtitles = await KinoUtils.parseSubtitles(kinoPlayerConfiguration.subtitlesPath);
@@ -45,6 +48,11 @@ class KinoPlayerController extends ValueNotifier<KinoPlayerEvent> {
   void setEvent(KinoPlayerEvent kinoPlayerEvent) {
     this.value = kinoPlayerEvent;
     //notifyListeners();
+  }
+
+  void setInitialized(bool state){
+    initialized = true;
+    notifyListeners();
   }
 
   void setControlsState(bool state){

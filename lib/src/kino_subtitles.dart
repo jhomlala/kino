@@ -43,6 +43,9 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
     print("Kino player controller updated!");
     var event = _kinoPlayerController.value;
     print("Eventttt:" + event.toString());
+    if (event == null){
+      return;
+    }
     if (event.eventType == KinoPlayerEventType.PLAY) {
       _startTimer();
     }
@@ -73,6 +76,9 @@ class _KinoSubtitlesState extends State<KinoSubtitles> {
   }
 
   void _startTimer() {
+    if (subtitles == null || subtitles.isEmpty){
+      return;
+    }
     print("Start timer!!!");
     _cancelTimer();
     _updateTimer = Timer.periodic(Duration(milliseconds: 100), _updateSubtitle);

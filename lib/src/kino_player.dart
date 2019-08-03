@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
@@ -23,18 +25,45 @@ class KinoPlayer extends StatefulWidget {
 class _KinoPlayerState extends State<KinoPlayer>
     with SingleTickerProviderStateMixin {
   bool _fullScreen = false;
+  Timer _loadTimer;
+  bool _loadFailed = false;
 
   @override
   void initState() {
+    _loadVideo();
+
+    super.initState();
+  }
+
+  _loadVideo() {
     print("Url: " + widget.kinoPlayerController.url);
+
+    _startVideoLoadTimer();
     var _controller =
         VideoPlayerController.network(widget.kinoPlayerController.url)
           ..initialize().then((_) {
+            _loadTimer.cancel();
+            _loadTimer = null;
             setState(() {});
+            widget.kinoPlayerController.setInitialized(true);
           });
+
     widget.kinoPlayerController.videoPlayerController = _controller;
 
-    super.initState();
+
+    //var val = widget.kinoPlayerController.videoPlayerController.value.errorDescription;
+  }
+
+  _startVideoLoadTimer() {
+    _loadTimer = Timer(
+        Duration(
+            milliseconds: widget.kinoPlayerController.kinoPlayerConfiguration
+                .videoLoadTimeout), () {
+      setState(() {
+        _loadFailed = true;
+      });
+      print("VIDEO TOOK TO LONG TO LOAD!!!");
+    });
   }
 
   @override
@@ -80,10 +109,14 @@ class _KinoPlayerState extends State<KinoPlayer>
   void _onPlayerClicked() {
     print("On Player clicked!!!");
 
-    print(
-        "is playing? " + getVideoPlayerController().value.isPlaying.toString());
+    print("is playing? " +
+        getVideoPlayerController().value.isPlaying.toString() +
+        " is buffering: ? " +
+        getVideoPlayerController().value.isBuffering.toString() +
+        "error: " +
+        getVideoPlayerController().value.errorDescription);
 
-    if (getVideoPlayerController().value.isPlaying ||
+    if (getVideoPlayerController().value.isPlaying || getVideoPlayerController().value.hasError ||
         widget.kinoPlayerController.isVideoFinished()) {
       widget.kinoPlayerController
           .setEvent(KinoPlayerEvent(KinoPlayerEventType.SHOW_CONTROLS));
@@ -103,7 +136,7 @@ class _KinoPlayerState extends State<KinoPlayer>
             width: MediaQuery.of(context).size.width,
             decoration: new BoxDecoration(
               shape: BoxShape.rectangle,
-              color: Colors.orange,
+              color: Colors.black,
             ),
             child: AspectRatio(
               aspectRatio: 3 / 2,
@@ -118,6 +151,14 @@ class _KinoPlayerState extends State<KinoPlayer>
             )));
   }
 
+  void retry() {
+    print("Pressed retry");
+    setState(() {
+      _loadFailed = false;
+    });
+    _loadVideo();
+  }
+
   List<Widget> _getPlayerWidgets() {
     var list = List<Widget>();
     if (getVideoPlayerController().value.initialized) {
@@ -125,11 +166,36 @@ class _KinoPlayerState extends State<KinoPlayer>
         aspectRatio: getVideoPlayerController().value.aspectRatio,
         child: VideoPlayer(getVideoPlayerController()),
       ));
+
+      list.add(KinoSubtitles());
+      list.add(KinoPlayerControls());
     } else {
-      list.add(Container(child: CircularProgressIndicator()));
+      if (_loadFailed) {
+        list.add(AspectRatio(
+            aspectRatio: getVideoPlayerController().value.aspectRatio,
+            child: Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Failed to load video",
+                        style: TextStyle(color: Colors.white)),
+                    RaisedButton(
+                        child: Text(
+                          "Retry",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: retry)
+                  ],
+                ))));
+      } else {
+        list.add(AspectRatio(
+            aspectRatio: getVideoPlayerController().value.aspectRatio,
+            child: Align(
+                alignment: Alignment.center,
+                child: CircularProgressIndicator())));
+      }
     }
-    list.add(KinoSubtitles());
-    list.add(KinoPlayerControls());
 
     return list;
   }

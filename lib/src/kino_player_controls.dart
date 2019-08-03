@@ -35,7 +35,8 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     print("DID CHANGE DEPS!!!");
     _kinoPlayerController = KinoPlayerController.of(context);
     _kinoPlayerController.addListener(_updateListener);
-    _kinoPlayerController.setControlsState(true);
+   _setControlsShown(_kinoPlayerController.initialized);
+
     if (_kinoPlayerController.videoPlayerController.value.isPlaying) {
       print("Setup hide timer");
       _setupTimers();
@@ -47,8 +48,16 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
     return _kinoPlayerController.videoPlayerController;
   }
 
+  void _checkControlsState(){
+    if (controlsState != (_kinoPlayerController.initialized )){
+      setState(() {
+        _setControlsShown(_kinoPlayerController.initialized  );
+      });
+    }
+  }
+
   void _updateListener() {
-    print("Kino player controller updated!");
+   _checkControlsState();
     var event = _kinoPlayerController.value;
     if (event != null && event.eventType == KinoPlayerEventType.SHOW_CONTROLS) {
       _cancelTimers();
@@ -61,6 +70,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
 
   @override
   Widget build(BuildContext context) {
+    print("animated opacity: " + controlsState.toString());
     return AnimatedOpacity(
         opacity: controlsState ? 1.0 : 0.0,
         duration: Duration(milliseconds: 500),
@@ -403,7 +413,7 @@ class _KinoPlayerControlsState extends State<KinoPlayerControls> {
   }
 
   void _setControlsShown(bool state){
-    controlsState = state;
+      controlsState = state;
     _kinoPlayerController.setControlsState(controlsState);
   }
 
